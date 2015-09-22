@@ -19,15 +19,5 @@ public class MainActivity extends AppCompatActivity
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
     }
-
-	@Override
-	public void onSaveInstanceState(Bundle savedInstanceState) {
-		// Let's save the state of the fab
-		// CheckableFloatingActionButton fab = (CheckableFloatingActionButton) findViewById(R.id.fab);
-		// savedInstanceState.putParcelable(STATE_FAB, fab);
-    
-		// Always call the superclass so it can save the view hierarchy state
-		super.onSaveInstanceState(savedInstanceState);
-	}
 }
 
