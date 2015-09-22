@@ -1,0 +1,11 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        flatDir {
+            dirs 'library/build/output/aar'
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.3.0'
+    }
+}
