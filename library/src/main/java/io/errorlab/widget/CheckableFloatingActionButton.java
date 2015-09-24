@@ -1,15 +1,16 @@
 package io.errorlab.widget;
 
 import android.content.Context;
-import android.support.design.widget.FloatingActionButton;
-import android.util.AttributeSet;
-import android.widget.Checkable;
-import android.util.Log;
+import android.graphics.Canvas;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.view.View.BaseSavedState;
 import android.os.Parcelable.Creator;
+import android.support.design.widget.FloatingActionButton;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
+import android.view.View.BaseSavedState;
+import android.widget.Checkable;
 
 public class CheckableFloatingActionButton extends FloatingActionButton implements Checkable {
 
@@ -60,6 +61,12 @@ public class CheckableFloatingActionButton extends FloatingActionButton implemen
 		Log.e("TOTO", "TOGGLE");
 		toggle();
 		return super.performClick();
+	}
+
+	@Override
+	public void onDraw(Canvas c) {
+		Log.e("TOTO", "onDraw in view");
+		super.onDraw(c);
 	}
 
 	@Override

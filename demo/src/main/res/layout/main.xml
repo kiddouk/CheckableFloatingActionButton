@@ -34,13 +34,12 @@
          />
     </LinearLayout>
 
-    <io.errorlab.widget.CheckableFloatingActionButton
+    <io.errorlab.widget.LayeredCheckableFloatingActionButton
        android:id="@+id/fab"
        android:layout_height="wrap_content"
        android:layout_width="wrap_content"
-       android:src="@drawable/ic_add_white_24dp"
+       android:src="@drawable/fab_switch"
        android:layout_margin="16dp"
-       android:clickable="true"
        android:layout_gravity="bottom|end"
        app:borderWidth="0dp"
        app:backgroundTint="@color/fab"
