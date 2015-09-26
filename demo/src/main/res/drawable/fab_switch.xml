@@ -8,8 +8,8 @@
    >
   
     <item android:state_checked="true"
-          android:drawable="@drawable/ic_like_fab_24dp" />
+          android:drawable="@drawable/ic_liked_fab_24dp" />
     
-    <item android:drawable="@drawable/ic_liked_fab_24dp" />
+    <item android:drawable="@drawable/ic_like_fab_24dp" />
     
 </selector>
