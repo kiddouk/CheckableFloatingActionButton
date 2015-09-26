@@ -4,7 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.StateListAnimator;
 import android.content.Context;
+import android.graphics.Outline;
 import android.graphics.Path;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -16,20 +18,46 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewOutlineProvider;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
+import android.widget.Checkable;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-public class LayeredCheckableFloatingActionButton extends FrameLayout {
+public class LayeredCheckableFloatingActionButton extends FrameLayout implements Checkable {
 
+	static final int[] CHECKED_ENABLED_STATE_SET = {
+		android.R.attr.state_checked
+	};
+
+	/**
+     * Interface definition for a callback to be invoked when the checked state of this View is
+     * changed.
+     */
+    public static interface OnCheckedChangeListener {
+
+        /**
+         * Called when the checked state of a compound button has changed.
+         *
+         * @param checkableView The view whose state has changed.
+         * @param isChecked     The new checked state of checkableView.
+         */
+        void onCheckedChanged(View checkableView, boolean isChecked);
+    }
+	
 	private Context context;
+	private final Interpolator checkedInterpolator;
 	private CheckableFloatingActionButton fab;
+	private OnCheckedChangeListener onCheckedChangeListener;
 	private ImageView checkedBackground;
 	private int[] viewMargins = null;
+
+	private boolean checked = false;
 
 	public LayeredCheckableFloatingActionButton(Context ctx) {
 		this(ctx, null);
@@ -43,24 +71,78 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout {
 		super(ctx, attrs, defStyle);
 		context = ctx;
 
-		LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+		// load the animation interpolator
+		checkedInterpolator = AnimationUtils.loadInterpolator(
+                context, android.R.interpolator.fast_out_slow_in);
 
-		ImageView uncheckedBackground = (ImageView) inflater.inflate(R.layout.background_normal_unchecked, null);
+		// View hierarchy setup
+		LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+		// ImageView uncheckedBackground = (ImageView) inflater.inflate(R.layout.background_normal_unchecked, null);
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-		addView(uncheckedBackground, params);
+		// addView(uncheckedBackground, params);
 
 		checkedBackground = (ImageView) inflater.inflate(R.layout.background_normal_checked, null);
 		addView(checkedBackground, params);
 
 		fab = new CheckableFloatingActionButton(ctx, attrs, defStyle);
-		// Let's make our image transparent
 		fab.setElevation(0);
-		fab.setChecked(true);
-		// fab.setImageResource(R.drawable.fab_switch);
 		fab.setBackgroundTintList(ctx.getResources().getColorStateList(R.color.transparent_fab));
 		params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		addView(fab, params);
-	}				
+
+		// Set Layout attributes since we are about to 
+		setClipToOutline(true);
+		setWillNotDraw(false);
+		setClickable(true);
+		setFocusable(true);
+		setPressedTranslationZ(40);
+		setBackgroundResource(R.drawable.layout_background_state);
+
+	}
+
+	@Override
+	public int[] onCreateDrawableState(int extraSpace) {
+		final int[] drawableState = super.onCreateDrawableState(extraSpace + 1);
+		if (isChecked()) {
+			mergeDrawableStates(drawableState, CHECKED_ENABLED_STATE_SET);
+		}		
+		return drawableState;
+	}
+
+	public boolean isChecked() {
+        return checked;
+    }
+
+    public void setChecked(boolean b) {
+        if (b != checked) {
+            checked = b;
+            refreshDrawableState();
+
+            if (onCheckedChangeListener != null) {
+                onCheckedChangeListener.onCheckedChanged(this, checked);
+            }
+        }
+    }
+
+    public void toggle() {
+        setChecked(!checked);
+    }
+	
+	private void setPressedTranslationZ(float translationZ) {
+        StateListAnimator stateListAnimator = new StateListAnimator();
+        // Animate translationZ to our value when pressed or focused
+        stateListAnimator.addState(CHECKED_ENABLED_STATE_SET,
+                setupAnimator(ObjectAnimator.ofFloat(this, "translationZ", translationZ)));
+        // Animate translationZ to 0 otherwise
+        stateListAnimator.addState(EMPTY_STATE_SET,
+                setupAnimator(ObjectAnimator.ofFloat(this, "translationZ", 0f)));
+        setStateListAnimator(stateListAnimator);
+    }
+
+	private Animator setupAnimator(Animator animator) {
+        animator.setInterpolator(checkedInterpolator);
+        return animator;
+    }
 
 	@Override
 	public boolean dispatchTouchEvent (MotionEvent ev) {
@@ -73,10 +155,9 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout {
 
 		// create the animator for this view (the start radius is zero)
 		Animator revealAnimator;
-
 		// Remember that here, the FAB has already changed state, so we need
 		// to invert our logic.
-		if (fab.isChecked() != true) {
+		if (isChecked() == true) {
 			revealAnimator = ViewAnimationUtils.createCircularReveal(checkedBackground, x, y, finalRadius, 0);
 			revealAnimator.addListener(new Animator.AnimatorListener() {
 					public void onAnimationEnd(Animator anim) {
@@ -87,7 +168,7 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout {
 					public void onAnimationRepeat(Animator anim) { };
 					public void onAnimationCancel(Animator anim) { };
 				});
-					
+			
 		} else {
 			revealAnimator = ViewAnimationUtils.createCircularReveal(checkedBackground, x, y, 0, finalRadius);
 			checkedBackground.setVisibility(View.VISIBLE);
@@ -103,51 +184,26 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout {
 	}
 	
 	// @Override
-	// public void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
-	// 	super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-	// 	fab.measure(widthMeasureSpec, heightMeasureSpec);
-	// 	checkedFab.measure(widthMeasureSpec, heightMeasureSpec);
-	// 	Log.e("TOTO", Integer.toString(checkedFab.getMeasuredWidth()));
-	// 	setMeasuredDimension(checkedFab.getMeasuredWidth() + 96, checkedFab.getMeasuredHeight() + 96);
-	// }
+	public void onLayout(boolean changed, int l, int t, int r, int b) {
+		super.onLayout(changed, l, t, r, b);
+		ViewOutlineProvider viewOutlineProvider = new ViewOutlineProvider() {
+				@Override
+				public void getOutline(View view, Outline outline) {
+					// Or read size directly from the view's width/height
+					int size = checkedBackground.getWidth();
+					outline.setOval(0, 0, size, size);
+				}
+			};
+		setOutlineProvider(viewOutlineProvider);
+	}
 
-	// @Override
-	// public void onLayout(boolean changed, int l, int t, int r, int b) {
-	// 	if (viewMargins == null) {
-	// 		ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) getLayoutParams();
-	// 		viewMargins = new int[4];
-	// 		viewMargins[0] = p.leftMargin;
-	// 		viewMargins[1] = p.topMargin;
-	// 		viewMargins[2] = p.rightMargin;
-	// 		viewMargins[3] = p.bottomMargin;
-	// 		p.setMargins(0, 0, 0, 0);
-	// 	}
-
-	// 	super.onLayout(changed, l, t, r, b);
-
-	// 	RelativeLayout.LayoutParams m = (RelativeLayout.LayoutParams) fab.getLayoutParams();
-	// 	Log.e("MARGIN", Integer.toString(m.topMargin));
-	// 	if (m.leftMargin == 0) {
-	// 		m.setMargins(
-	// 			viewMargins[0],
-	// 			viewMargins[1],
-	// 			viewMargins[2],
-	// 			viewMargins[3]);
-	// 	}
-	// 	RelativeLayout.LayoutParams n = (RelativeLayout.LayoutParams) checkedFab.getLayoutParams();
-	// 	Log.e("MARGIN", Integer.toString(n.topMargin));
-	// 	if (n.leftMargin == 0) {
-	// 		n.setMargins(
-	// 			viewMargins[0],
-	// 			viewMargins[1],
-	// 			viewMargins[2],
-	// 			viewMargins[3]);
-	// 	}
-	// }
-
-	// public static float dipToPixels(Context context, float dipValue) {
-	// 	DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-	// 	return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
-	// }
+	 /**
+     * Register a callback to be invoked when the checked state of this view changes.
+     *
+     * @param listener the callback to call on checked state change
+     */
+    public void setOnCheckedChangeListener(OnCheckedChangeListener listener) {
+        onCheckedChangeListener = listener;
+    }
 
 }

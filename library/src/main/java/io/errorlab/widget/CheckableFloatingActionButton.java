@@ -17,9 +17,9 @@ public class CheckableFloatingActionButton extends FloatingActionButton implemen
 	private static final int[] CheckedStateSet = {
 		android.R.attr.state_checked,
 	};
-	
-	private boolean checked = false;
 
+	private boolean checked = false;
+	
 	public CheckableFloatingActionButton(Context ctx) {
 		this(ctx, null);
 	}
@@ -36,7 +36,6 @@ public class CheckableFloatingActionButton extends FloatingActionButton implemen
 	public int[] onCreateDrawableState(int extraSpace) {
 		final int[] drawableState = super.onCreateDrawableState(extraSpace + 1);
 		if (isChecked()) {
-			Log.e("TOTO", "Is checked ;)");
 			mergeDrawableStates(drawableState, CheckedStateSet);
 		}
 		return drawableState;
@@ -61,12 +60,6 @@ public class CheckableFloatingActionButton extends FloatingActionButton implemen
 		Log.e("TOTO", "TOGGLE");
 		toggle();
 		return super.performClick();
-	}
-
-	@Override
-	public void onDraw(Canvas c) {
-		Log.e("TOTO", "onDraw in view");
-		super.onDraw(c);
 	}
 
 	@Override
