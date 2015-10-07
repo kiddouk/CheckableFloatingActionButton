@@ -30,6 +30,9 @@ Of course, the button supports callbacks when the button is checked/unchecked.
      />
 ```
 
+The property addStateFronChildren is mandatory for now, the rest is self explanatory.
+The drawable set in src should be a StateDrawable defined like so :
+
 ```xml
 <selector
    xmlns:android="http://schemas.android.com/apk/res/android"
@@ -48,7 +51,6 @@ Of course, the button supports callbacks when the button is checked/unchecked.
 ```
 
 
-The property addStateFronChildren is mandatory for now, the rest is self explanatory.
 
 Want something more in this ? Send me a pull request !
 
