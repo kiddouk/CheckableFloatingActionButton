@@ -1,4 +1,4 @@
-# Cheackable Floating Button #
+# Checkable Floating Button #
 
 A simple Floating Action Button that supports states. You can configure the following :
 * elevation
