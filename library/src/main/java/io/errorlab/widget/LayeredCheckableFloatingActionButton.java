@@ -34,6 +34,7 @@ import android.app.Fragment;
 import android.os.Parcel;
 
 import io.errorlab.widget.CheckedSavedState;
+import android.content.res.TypedArray;
 
 public class LayeredCheckableFloatingActionButton extends FrameLayout implements Checkable {
 
@@ -96,12 +97,27 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
 		params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		addView(fab, params);
 
+
+		TypedArray a = context.getTheme().obtainStyledAttributes(
+			attrs,
+			R.styleable.LayeredCheckableFloatingActionButton,
+			0, 0);
+
+		float pressed_elevation = 0f;
+		float elevation = 0f;
+		try {
+			pressed_elevation = a.getDimension(R.styleable.LayeredCheckableFloatingActionButton_pressed_elevation, 0);
+			elevation = a.getDimension(R.styleable.LayeredCheckableFloatingActionButton_android_elevation, 0);
+		} finally {
+			a.recycle();
+		}
+		
 		// Set Layout attributes since we are about to 
 		setClipToOutline(true);
 		setWillNotDraw(false);
 		setClickable(true);
 		setFocusable(true);
-		setPressedTranslationZ(-6*3);
+		setPressedTranslationZ(elevation - pressed_elevation);
 		setBackgroundResource(R.drawable.layout_background_state);
 
 	}
@@ -110,7 +126,6 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
     protected Parcelable onSaveInstanceState() {
         CheckedSavedState result = new CheckedSavedState(super.onSaveInstanceState());
         result.checked = checked;
-		Log.e("SAVE", "It's us");
         return result;
     }
 
@@ -118,7 +133,6 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
 	@Override
     protected void onRestoreInstanceState(Parcelable state) {
 		if (!(state instanceof CheckedSavedState)) {
-			Log.e("NOPE", "Not us");
             super.onRestoreInstanceState(state);
             return;
         }
@@ -126,7 +140,6 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
         CheckedSavedState ss = (CheckedSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
 
-		Log.e("RESTORING", Boolean.toString(ss.checked));
         setChecked(ss.checked);
 		if (isChecked()) {
 			checkedBackground.setVisibility(View.VISIBLE);

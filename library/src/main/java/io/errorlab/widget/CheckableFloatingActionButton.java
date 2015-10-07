@@ -59,7 +59,6 @@ public class CheckableFloatingActionButton extends FloatingActionButton implemen
 
 	@Override
 	public boolean performClick() {
-		Log.e("TOTO", "TOGGLE");
 		toggle();
 		return super.performClick();
 	}
@@ -75,15 +74,10 @@ public class CheckableFloatingActionButton extends FloatingActionButton implemen
     protected void onRestoreInstanceState(Parcelable state) {
         if (!(state instanceof CheckedSavedState)) {
             super.onRestoreInstanceState(state);
-			Log.e("RESTORE", "Not us again");
             return;
         }
-
-		Log.e("CHECKED", "RESTORE");
-
         CheckedSavedState ss = (CheckedSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
-
         setChecked(ss.checked);
     }
 
