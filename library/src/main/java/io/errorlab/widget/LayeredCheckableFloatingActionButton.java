@@ -28,6 +28,12 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.os.Parcelable;
+import android.view.View.BaseSavedState;
+import android.app.Fragment;
+import android.os.Parcel;
+
+import io.errorlab.widget.CheckedSavedState;
 
 public class LayeredCheckableFloatingActionButton extends FrameLayout implements Checkable {
 
@@ -73,7 +79,7 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
 
 		// load the animation interpolator
 		checkedInterpolator = AnimationUtils.loadInterpolator(
-                context, android.R.interpolator.fast_out_slow_in);
+			context, android.R.interpolator.fast_out_slow_in);
 
 		// View hierarchy setup
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -95,9 +101,36 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
 		setWillNotDraw(false);
 		setClickable(true);
 		setFocusable(true);
-		setPressedTranslationZ(40);
+		setPressedTranslationZ(-6*3);
 		setBackgroundResource(R.drawable.layout_background_state);
 
+	}
+
+	@Override
+    protected Parcelable onSaveInstanceState() {
+        CheckedSavedState result = new CheckedSavedState(super.onSaveInstanceState());
+        result.checked = checked;
+		Log.e("SAVE", "It's us");
+        return result;
+    }
+
+
+	@Override
+    protected void onRestoreInstanceState(Parcelable state) {
+		if (!(state instanceof CheckedSavedState)) {
+			Log.e("NOPE", "Not us");
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        CheckedSavedState ss = (CheckedSavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+
+		Log.e("RESTORING", Boolean.toString(ss.checked));
+        setChecked(ss.checked);
+		if (isChecked()) {
+			checkedBackground.setVisibility(View.VISIBLE);
+		}
 	}
 
 	@Override
@@ -132,10 +165,10 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
         StateListAnimator stateListAnimator = new StateListAnimator();
         // Animate translationZ to our value when pressed or focused
         stateListAnimator.addState(CHECKED_ENABLED_STATE_SET,
-                setupAnimator(ObjectAnimator.ofFloat(this, "translationZ", translationZ)));
+								   setupAnimator(ObjectAnimator.ofFloat(this, "translationZ", translationZ)));
         // Animate translationZ to 0 otherwise
         stateListAnimator.addState(EMPTY_STATE_SET,
-                setupAnimator(ObjectAnimator.ofFloat(this, "translationZ", 0f)));
+								   setupAnimator(ObjectAnimator.ofFloat(this, "translationZ", 0f)));
         setStateListAnimator(stateListAnimator);
     }
 
@@ -157,7 +190,7 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
 		Animator revealAnimator;
 		// Remember that here, the FAB has already changed state, so we need
 		// to invert our logic.
-		if (isChecked() == true) {
+		if (fab.isChecked()) {
 			revealAnimator = ViewAnimationUtils.createCircularReveal(checkedBackground, x, y, finalRadius, 0);
 			revealAnimator.addListener(new Animator.AnimatorListener() {
 					public void onAnimationEnd(Animator anim) {
@@ -197,7 +230,7 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
 		setOutlineProvider(viewOutlineProvider);
 	}
 
-	 /**
+	/**
      * Register a callback to be invoked when the checked state of this view changes.
      *
      * @param listener the callback to call on checked state change
@@ -206,4 +239,5 @@ public class LayeredCheckableFloatingActionButton extends FrameLayout implements
         onCheckedChangeListener = listener;
     }
 
+	
 }

@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.View.BaseSavedState;
 import android.widget.Checkable;
 
+import io.errorlab.widget.CheckedSavedState;
+
 public class CheckableFloatingActionButton extends FloatingActionButton implements Checkable {
 
 	private static final int[] CheckedStateSet = {
@@ -64,52 +66,27 @@ public class CheckableFloatingActionButton extends FloatingActionButton implemen
 
 	@Override
     protected Parcelable onSaveInstanceState() {
-        SavedState result = new SavedState(super.onSaveInstanceState());
+        CheckedSavedState result = new CheckedSavedState(super.onSaveInstanceState());
         result.checked = checked;
         return result;
     }
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        if (!(state instanceof SavedState)) {
+        if (!(state instanceof CheckedSavedState)) {
             super.onRestoreInstanceState(state);
+			Log.e("RESTORE", "Not us again");
             return;
         }
 
-        SavedState ss = (SavedState) state;
+		Log.e("CHECKED", "RESTORE");
+
+        CheckedSavedState ss = (CheckedSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
 
         setChecked(ss.checked);
     }
 
-    protected static class SavedState extends BaseSavedState {
-        protected boolean checked;
-
-        protected SavedState(Parcelable superState) {
-            super(superState);
-        }
-
-        @Override
-        public void writeToParcel(Parcel out, int flags) {
-            super.writeToParcel(out, flags);
-            out.writeInt(checked ? 1 : 0);
-        }
-
-        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
-            public SavedState createFromParcel(Parcel in) {
-                return new SavedState(in);
-            }
-
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
-            }
-        };
-
-        private SavedState(Parcel in) {
-            super(in);
-            checked = in.readInt() == 1;
-        }
-    }
 }
 	
 	
